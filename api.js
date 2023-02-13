@@ -1,76 +1,56 @@
-const express = require('express')
-const Joi = require('joi')
-
-const app = express()
-app.use(express.json())
-
-const cats = [
-    {id: 1, name: 'Pirmas'},
-    {id: 2, name: 'Antras'},
-    {id: 3, name: 'Trečias'}
-]
+const express = require('express');
+const app = express();
 
 app.get('/', (req, res) => {
-    res.send('Give me all your money!')
-})
+  let output = '';
 
-app.get('/api/cats', (req, res) => {
-    res.send(cats)
-})
-
-app.get('/api/cats/:id', (req, res) => {
-   const cat = cats.find(c => c.id === parseInt(req.params.id))
-   if(!cat) return res.status(404).send('Record not found')
-   res.send(cat)
-})
-
-app.post('/api/cats', (req, res) => {
-    //if(!req.body.name || req.body.name.length<3) return res.status(400).send('Bad cat name')
-/*
-    const schema = joi.object({
-        name: joi.string().min(3).required()
-    })
-    const { error } = schema.validate(req.body)
-    if(error) return res.status(400).send(error.details[0].message)
-*/
-    const { error } = validateCat(req.body)
-    if(error) return res.status(400).send(error.details[0].message)
-
-    const cat = {
-        id: cats.length + 1,
-        name: req.body.name
+  function printAsterisk(asterisk) {
+    if (asterisk === 0) {
+      return;
     }
-    cats.push(cat)
+    output += '* ';
+    printAsterisk(asterisk - 1);
+  }
 
-    res.send(cats)
-})
+  function printSpace(space) {
+    if (space === 0) {
+      return;
+    }
+    output += '&nbsp;&nbsp;&nbsp;';
+    printSpace(space - 1);
+  }
 
-app.put('/api/cats/:id', (req, res) => {
-    const cat = cats.find(c => c.id === parseInt(req.params.id))
-    if(!cat) return res.status(404).send('Record not found')
+  function patternUpper(n, num) {
+    if (n === 0) {
+      return;
+    }
+    printSpace(n);
+    printAsterisk(2 * (num - n) + 1);
+    printSpace(n);
+    output += '<br>';
+    patternUpper(n - 1, num);
+  }
+  
+  function patternLower(n, num) {
+    if (n === 0) {
+      return;
+    }
+    printSpace(num - n + 1);
+    printAsterisk(2 * n - 1);
+    output += '<br>';
+    patternLower(n - 1, num);
+  }
 
-    const { error } = validateCat(req.body)
-    if(error) return res.status(400).send(error.details[0].message)
+  function pattern(n, num) {
+    patternUpper(n, num);
+    patternLower(n - 1, num);
+  }
+  let n = 5;
+  pattern(n, n);
 
-    cat.name = req.body.name
-    res.send(cats)
-})
+  res.send(`${output}`);
+});
 
-app.delete('/api/cats/:id', (req, res) => {
-    const cat = cats.find(c => c.id === parseInt(req.params.id))
-    if(!cat) return res.status(404).send('Record not found')
-
-    cats.splice(cats.indexOf(cat), 1)
-    res.send(cats)
-})
-
-function validateCat(cat) {
-    const schema = Joi.object({
-        name: Joi.string().min(3).required()
-    })
-    return schema.validate(cat)
-}
-
-const port = process.env.PORT || 3000
-
-app.listen(port, () => console.log(`Server is running on ${port} port`))
+app.listen(3000, () => {
+  console.log('Diamond app listening on port 3000!');
+});
